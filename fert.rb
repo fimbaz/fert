@@ -12,7 +12,7 @@ class Fertilizer
   end
 
   def percentages
-    @elements.map do |x| [x[0],x[1] * ElementMasses[x[0]].to_f/molar_mass*100] end
+    @percentages ||= Hash[@elements.map do |x| [x[0],x[1] * ElementMasses[x[0]].to_f/molar_mass*100] end]
   end
 
   def _parse_fmla(fmla)
@@ -22,9 +22,18 @@ class Fertilizer
     @molar_mass = @elements.inject(0) do |tot,x| tot + x[1] * ElementMasses[x[0]] end
           
   end
+
+  def to_s
+    s = [@formula]
+    s << @elements.map do |x|
+      "%s: %02d" %  [x[0],percentages[x[0]]]
+    end
+    s.join("\n") + "\n"
+  end
 end
-print Fertilizer.new("KNO3").elements
-print Fertilizer.new("KH2PO4").percentages
+print Fertilizer.new("KNO3")
+print Fertilizer.new("KH2PO4")
+
 
 # Input: desired ppm of each element
 
