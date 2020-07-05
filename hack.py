@@ -59,4 +59,4 @@ if __name__ == "__main__":
             ## From http://co2meters.com/Documentation/AppNotes/AN146-RAD-0401-serial-communication.pdf
             if 0x50 in values and 0x42 in values:
                 print("%4i %2.2f" % (values[0x50], (values[0x42]/16.0-273.15)))
-                print
+
