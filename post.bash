@@ -1,5 +1,5 @@
 
-python -u hack.py /dev/hidraw0  | while read CO2_PPM TEMP_C; do
+python -u hack.py /dev/hidraw2  | while read CO2_PPM TEMP_C; do
     NOW=$(date +%s%N)
     if [[ $CO2_PPM ]]; then
 	curl -i -XPOST "http://localhost:8086/write?db=greenhouse" -d @- <<EOF
