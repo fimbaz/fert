@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import paho.mqtt.client as mqtt
 import sys, fcntl, time
 class CO2Detector:
     def __init__(self,devicefilename):
@@ -8,7 +8,7 @@ class CO2Detector:
         HIDIOCSFEATURE_9 = 0xC0094806
         set_report = "\x00" + "".join(chr(e) for e in self.key)
         fcntl.ioctl(self.fp, HIDIOCSFEATURE_9, set_report)
-
+        self.client = mqtt.Client("greenho1")
     def decrypt(self, key, data):
         cstate = [0x48,  0x74,  0x65,  0x6D,  0x70,  0x39,  0x39,  0x65]
         shuffle = [2, 4, 0, 7, 1, 6, 5, 3]
@@ -54,6 +54,6 @@ class CO2Detector:
                     return (co2ppm, tempc)
 
 if __name__ == '__main__':
-    detector = CO2Detector("/dev/hidraw2")
+    detector = CO2Detector("/dev/hidraw0")
     while True:
         print("%4d %2f" % detector.fetch())
