@@ -1,0 +1,64 @@
+#To compile into an expression you can paste into the tasmota CLI:
+# grep -vE '^#' < tasmogram.txt | tr "\n" ' ' | tr -s ' ' | tr '`' '\n' 
+Rule1 ON Event#RelaxAndPurgeGas DO
+  backlog Event StopGas;
+    Var5 1;
+    Var6 0;
+ENDON ON Event#PurgeGas DO
+  backlog Event VentOn;
+    RuleTimer6 300;
+ENDON ON Rules#Timer=6 DO
+  backlog Event VentOff;
+    var5 0;
+    var6 0;
+ENDON ON Event#LightsOn DO
+  backlog Power4 1;
+    var4 1;
+ENDON ON Event#LightsOff DO
+  backlog Power4 0;
+    var4 0;
+ENDON ON Event#StopGas DO
+backlog Power3 0;
+    var3 0;
+ENDON ON Event#VentOn DO
+  backlog Power2 1;
+    Var2 1;
+    Event StopGas;
+ENDON ON Event#VentOff DO
+  backlog Power2 0;
+    Var2 0;
+ENDON ON Event#PumpGas DO 
+  backlog Power3 1;
+   RuleTimer3 30;
+   var3 1
+#Emit CO2 in response to low ppm detected.
+ENDON ON mqtt#Connected DO 
+  Subscribe co2ppm, stat/greenhouse/co2sens, co2ppm
+ENDON ON Event#co2ppm<=800 DO
+  IF (%VAR5% = 1 AND %VAR6% != 1) Event PurgeGas; var6 1 ELSEIF 
+  ELSEIF (%VAR4% = 1 AND %VAR2% = 0 AND %VAR5% != 1) Event PumpGas ENDIF
+ENDON ON Rules#Timer=3 DO 
+  Event StopGas
+ENDON
+
+# Cycle the pump to melt some ice.  Cycle Var1 times (30),
+# w/ pump on 20 and off 30 for each cycle.
+`Rule2 ON Event#CoolRunnings DO
+  backlog Var1 240;
+    Power1 0;
+    Event CR1; 
+ENDON ON Var1#State<1 DO 
+  backlog RuleTimer4 0;
+    RuleTimer5 0;
+ENDON ON Event#CR1 DO
+  backlog Power1 1;
+    RuleTimer4 10;
+#Counts the number of pump/relax steps for the ice bucket
+ENDON ON Rules#Timer=4 DO
+  backlog Power1 0; 
+    RuleTimer5 30;
+    Sub1 1;
+ENDON ON Rules#Timer=5 DO
+  backlog Event CR1;
+ENDON
+#Turn off CO2

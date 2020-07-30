@@ -9,10 +9,7 @@ EOF
 temp_c,host=clarissa,region=baker30s,room=gh1 temp_c=$TEMP_C $NOW
 EOF
     fi;
-    if [[ $CO2_PPM -lt 1200 ]]; then
-	echo "CO2: $CO2_PPM Pumping the gas"
-	mosquitto_pub -h localhost -t greenhouse/control1/cmnd/Event -m PumpGas
-    fi;
+    mosquitto_pub -h localhost -t stat/greenhouse/co2sens -m "{\"co2ppm\":${CO2_PPM},\"temp_c\":${TEMP_C}}"
     echo $CO2_PPM $TEMP_C
 done
 

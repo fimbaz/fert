@@ -54,6 +54,6 @@ class CO2Detector:
                     return (co2ppm, tempc)
 
 if __name__ == '__main__':
-    detector = CO2Detector("/dev/hidraw0")
+    detector = CO2Detector("/dev/hidraw2")
     while True:
         print("%4d %2f" % detector.fetch())
