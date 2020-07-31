@@ -4,6 +4,11 @@ import paho.mqtt.client as mqtt
 import sys, fcntl, time
 import json
 import math
+gh_mappings = {'greenhouse/control1/POWER1' : "WaterPump",
+                'greenhouse/control1/POWER2' :"Vent",
+                'greenhouse/control1/POWER3' : "CO2Valve",
+                'greenhouse/control1/POWER4' : "Lights",
+                'greenhouse/control2/POWER1' : "Swamp"}
 def calc_svp(temp_c):
     return 610.78 *  math.exp(temp_c / (temp_c + 238.3) * 17.2694)
 
@@ -11,27 +16,43 @@ def calc_vpd(temp_c,humidity):
     return calc_svp(temp_c) * (1 - humidity/100)
 def on_message_cb(client,userdata,message):
     the_time = str(int(time.time()))+"000000000"
-    payload = json.loads(message.payload)["AM2301"]
-    vpd = float(payload["VPD"])*100
-    print(requests.post("http://localhost:8086/write?db=greenhouse",
-                        "temp_c,host=clarissa,region=baker30s,room=gh2 temp_c=%2f %s"  % (payload["Temperature"], the_time)))
-    print(requests.post("http://localhost:8086/write?db=greenhouse",
-              "humidity,host=clarissa,region=baker30s,room=gh2 humidity=%2f %s"  % (payload["Humidity"], the_time)))
-    print(requests.post("http://localhost:8086/write?db=greenhouse",
-              "dewpoint,host=clarissa,region=baker30s,room=gh2 dewpoint=%2f %s"  % (payload["DewPoint"], the_time)))
-    print(requests.post("http://localhost:8086/write?db=greenhouse",
-              "vpd,host=clarissa,region=baker30s,room=gh2 vpd=%2f %s" % (vpd,the_time)))
-
+    if message.topic == "greenhouse/control2/SENSOR":
+        print(message.topic)
+        payload = json.loads(message.payload)["AM2301"]
+        vpd = float(payload["VPD"])*100 # convert from hPa to Pa
+        print(requests.post("http://localhost:8086/write?db=greenhouse",
+                            "temp_c,host=clarissa,region=baker30s,room=gh2 temp_c=%2f %s"  % (payload["Temperature"], the_time)))
+        print(requests.post("http://localhost:8086/write?db=greenhouse",
+                            "humidity,host=clarissa,region=baker30s,room=gh2 humidity=%2f %s"  % (payload["Humidity"], the_time)))
+        print(requests.post("http://localhost:8086/write?db=greenhouse",
+                            "dewpoint,host=clarissa,region=baker30s,room=gh2 dewpoint=%2f %s"  % (payload["DewPoint"], the_time)))
+        print(requests.post("http://localhost:8086/write?db=greenhouse",
+                            "vpd,host=clarissa,region=baker30s,room=gh2 vpd=%2f %s" % (vpd,the_time)))
+    if message.topic in gh_mappings.keys():
+        name = gh_mappings[message.topic]
+        status = 1 if message.payload == "ON" else 0
+        print(requests.post("http://localhost:8086/write?db=greenhouse",
+                            "%s,host=clarissa,region=baker30s,room=gh2 %s=%d %s" % (name,name,status,the_time)))
+        
 
 class SonoffTHDevice:
     def __init__(self):
         self.client = mqtt.Client("greenho1")
         self.client.connect("localhost")
-        self.client.on_message = on_message_cb
-        self.client.subscribe("greenhouse/control2/SENSOR")
-        self.client.loop_start()
-        print("okies")
 
+        for topic in gh_mappings.keys():
+            self.client.subscribe(topic)
+        self.client.subscribe("greenhouse/control2/SENSOR")
+        self.client.on_message = on_message_cb
+        self.client.loop_start()
+        self.poll_sensors()
+        
+    def poll_sensors(self):
+        for topic in gh_mappings.keys():
+            tok = topic.split("/")
+            tok.insert(2,"cmnd")
+            self.client.publish("/".join(tok))
+            
 class CO2Detector:
     def __init__(self,devicefilename):
         self.key = [0xc4, 0xc6, 0xc0, 0x92, 0x40, 0x23, 0xdc, 0x96]
@@ -88,6 +109,7 @@ if __name__ == '__main__':
     detector = CO2Detector("/dev/hidraw0")
     while True:
         co2,temp_c = detector.fetch()
+        device.poll_sensors()
         the_time = str(int(time.time()))+"000000000"
         print(requests.post("http://localhost:8086/write?db=greenhouse",
               "temp_c,host=clarissa,region=baker30s,room=gh1 temp_c=%2f %s"  % (temp_c, the_time)))
