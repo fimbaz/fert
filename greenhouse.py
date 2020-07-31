@@ -12,13 +12,13 @@ def calc_vpd(temp_c,humidity):
 def on_message_cb(client,userdata,message):
     the_time = str(int(time.time()))+"000000000"
     payload = json.loads(message.payload)["AM2301"]
-    vpd = calc_vpd(float(payload["Temperature"]),float(payload["Humidity"]))
+    vpd = float(payload["VPD"])*100
     print(requests.post("http://localhost:8086/write?db=greenhouse",
                         "temp_c,host=clarissa,region=baker30s,room=gh2 temp_c=%2f %s"  % (payload["Temperature"], the_time)))
     print(requests.post("http://localhost:8086/write?db=greenhouse",
               "humidity,host=clarissa,region=baker30s,room=gh2 humidity=%2f %s"  % (payload["Humidity"], the_time)))
     print(requests.post("http://localhost:8086/write?db=greenhouse",
-              "co2_ppm,host=clarissa,region=baker30s,room=gh2 dewpoint=%2f %s"  % (payload["DewPoint"], the_time)))
+              "dewpoint,host=clarissa,region=baker30s,room=gh2 dewpoint=%2f %s"  % (payload["DewPoint"], the_time)))
     print(requests.post("http://localhost:8086/write?db=greenhouse",
               "vpd,host=clarissa,region=baker30s,room=gh2 vpd=%2f %s" % (vpd,the_time)))
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     while True:
         co2,temp_c = detector.fetch()
         the_time = str(int(time.time()))+"000000000"
-        requests.post("http://localhost:8086/write?db=greenhouse",
-              "temp_c,host=clarissa,region=baker30s,room=gh1 temp_c=%2f %s"  % (temp_c, the_time))
-        requests.post("http://localhost:8086/write?db=greenhouse",
-              "co2_ppm,host=clarissa,region=baker30s,room=gh1 co2_ppm=%4d %s"  % (co2, the_time))
+        print(requests.post("http://localhost:8086/write?db=greenhouse",
+              "temp_c,host=clarissa,region=baker30s,room=gh1 temp_c=%2f %s"  % (temp_c, the_time)))
+        print(requests.post("http://localhost:8086/write?db=greenhouse",
+                            "co2_ppm,host=clarissa,region=baker30s,room=gh1 co2_ppm=%2f %s" % (co2, the_time)))
