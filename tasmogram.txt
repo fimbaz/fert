@@ -1,12 +1,17 @@
-#To compile into an expression you can paste into the tasmota CLI:
-# grep -vE '^#' < tasmogram.txt | tr "\n" ' ' | tr -s ' ' | tr '`' '\n' 
+# grep -vE '^#' | tr "\n" ' ' | tr -s ' ' | tr '`' '\n'
+# Var1 cool-runnings-cycles-left CoolRunnings cycle Counter
+# Var2 vent-state Vent fan state
+# Var3 co2-state Co2 solenoid state
+# Var4 light-state Light state
+# Var5 purge-next-lowco2 PurgeGas relax callback -- causes next < 800ppm co2 state to trigger PurgeGas
+# Var6 purge-in-progress PurgeGas in progress flag -- do not reset the PurgeGas timer.
 Rule1 ON Event#RelaxAndPurgeGas DO
   backlog Event StopGas;
     Var5 1;
     Var6 0;
 ENDON ON Event#PurgeGas DO
   backlog Event VentOn;
-    RuleTimer6 300;
+    RuleTimer6 30;
 ENDON ON Rules#Timer=6 DO
   backlog Event VentOff;
     var5 0;
@@ -33,18 +38,21 @@ ENDON ON Event#PumpGas DO
    var3 1
 #Emit CO2 in response to low ppm detected.
 ENDON ON mqtt#Connected DO 
-  Subscribe co2ppm, stat/greenhouse/co2sens, co2ppm
+  backlog Subscribe co2ppm, stat/greenhouse/co2sens, co2ppm;
+  Subscribe VPD, greenhouse/control2/SENSOR, AM2301.VPD
+ENDON ON Event#VPD<8 DO
+      Event RelaxAndPurgeGas
 ENDON ON Event#co2ppm<=800 DO
-  IF (%VAR5% = 1 AND %VAR6% != 1) Event PurgeGas; var6 1 ELSEIF 
-  ELSEIF (%VAR4% = 1 AND %VAR2% = 0 AND %VAR5% != 1) Event PumpGas ENDIF
+  IF (%VAR5% = 1 AND %VAR6% != 1) backlog Event PurgeGas; var6 1 
+  ELSEIF (%VAR4% = 1 AND %VAR2% = 0 AND %VAR5% != 1) Event PumpGas
+  ENDIF
 ENDON ON Rules#Timer=3 DO 
   Event StopGas
 ENDON
-
 # Cycle the pump to melt some ice.  Cycle Var1 times (30),
 # w/ pump on 20 and off 30 for each cycle.
 `Rule2 ON Event#CoolRunnings DO
-  backlog Var1 240;
+  backlog Var1 60;
     Power1 0;
     Event CR1; 
 ENDON ON Var1#State<1 DO 
@@ -60,5 +68,31 @@ ENDON ON Rules#Timer=4 DO
     Sub1 1;
 ENDON ON Rules#Timer=5 DO
   backlog Event CR1;
-ENDON
-#Turn off CO2
+#ENDON ON Rules#Timer=7 DO
+#    backlog  Event RelaxAndPurgeGas;
+#      RuleTimer7 4800
+ENDON ON Event#GoodMorning DO
+  backlog Event LightsOn;
+    Event VentOff;
+#Start the purge loop
+#    RuleTimer7 4800
+ENDON ON Event#GoodNight DO
+  backlog Event LightsOff;
+    Event VentOn;
+    RuleTimer7 0
+ENDON ON Clock#Timer=2 DO
+  Event GoodMorning
+ENDON ON Clock#Timer=3 DO
+  Event GoodNight
+ENDON ON System#Boot DO
+  backlog Var1 0;
+    Var2 0;
+    Var3 0;
+    Var4 0;
+    Var5 0;
+    Var6 0;
+    Power1 0;
+    Power2 0;
+    Power3 0;
+    Power4 0;
+ENDON 

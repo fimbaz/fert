@@ -17,8 +17,8 @@ def calc_vpd(temp_c,humidity):
 def on_message_cb(client,userdata,message):
     the_time = str(int(time.time()))+"000000000"
     if message.topic == "greenhouse/control2/SENSOR":
-        print(message.topic)
         payload = json.loads(message.payload)["AM2301"]
+
         vpd = float(payload["VPD"])*100 # convert from hPa to Pa
         print(requests.post("http://localhost:8086/write?db=greenhouse",
                             "temp_c,host=clarissa,region=baker30s,room=gh2 temp_c=%2f %s"  % (payload["Temperature"], the_time)))
@@ -31,20 +31,31 @@ def on_message_cb(client,userdata,message):
     if message.topic in gh_mappings.keys():
         name = gh_mappings[message.topic]
         status = 1 if message.payload == "ON" else 0
+        userdata.gh_last[message.topic] = status        
         print(requests.post("http://localhost:8086/write?db=greenhouse",
                             "%s,host=clarissa,region=baker30s,room=gh2 %s=%d %s" % (name,name,status,the_time)))
-        
+
 
 class SonoffTHDevice:
     def __init__(self,mqtt_client):
+        self.gh_last = {metric:None for metric in gh_mappings.keys()}
         self.client = mqtt_client
         for topic in gh_mappings.keys():
             self.client.subscribe(topic)
         self.client.subscribe("greenhouse/control2/SENSOR")
         self.client.on_message = on_message_cb
+        self.client.user_data_set(self)
         self.client.loop_start()
         self.poll_sensors()
-        
+
+    def fetch(self):
+        print(self.gh_last.items())
+        the_time = str(int(time.time()))+"000000000"
+        for topic,status in self.gh_last.items():
+            if status != None:
+                name = gh_mappings[topic]
+                print(requests.post("http://localhost:8086/write?db=greenhouse",
+                                    "%s,host=clarissa,region=baker30s,room=gh2 %s=%d %s" % (name,name,status,the_time)))
     def poll_sensors(self):
         for topic in gh_mappings.keys():
             tok = topic.split("/")
@@ -101,19 +112,21 @@ class CO2Detector:
                 if 0x50 in values and 0x42 in values:
                     co2ppm = int(values[0x50])
                     tempc = float(values[0x42]/16.0-273.15)
+                    the_time = str(int(time.time()))+"000000000"
                     self.client.publish('stat/greenhouse/co2sens',"{\"co2ppm\":%d,\"temp_c\":%2f}" % (co2ppm,tempc))
-                    return (co2ppm, tempc)
+                    print(requests.post("http://localhost:8086/write?db=greenhouse",
+                                        "temp_c,host=clarissa,region=baker30s,room=gh1 temp_c=%2f %s"  % (tempc, the_time)))
+                    print(requests.post("http://localhost:8086/write?db=greenhouse",
+                                        "co2_ppm,host=clarissa,region=baker30s,room=gh1 co2_ppm=%2f %s" % (co2ppm, the_time)))
 
+                    return (co2ppm, tempc)
+                
 if __name__ == '__main__':
     mqtt = mqtt.Client("greenho1")
     mqtt.connect("localhost")
     device = SonoffTHDevice(mqtt)
     detector = CO2Detector("/dev/hidraw0",mqtt)
     while True:
-        co2,temp_c = detector.fetch()
-        device.poll_sensors()
-        the_time = str(int(time.time()))+"000000000"
-        print(requests.post("http://localhost:8086/write?db=greenhouse",
-              "temp_c,host=clarissa,region=baker30s,room=gh1 temp_c=%2f %s"  % (temp_c, the_time)))
-        print(requests.post("http://localhost:8086/write?db=greenhouse",
-                            "co2_ppm,host=clarissa,region=baker30s,room=gh1 co2_ppm=%2f %s" % (co2, the_time)))
+        detector.fetch()
+        device.fetch()
+
