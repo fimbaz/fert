@@ -36,10 +36,8 @@ def on_message_cb(client,userdata,message):
         
 
 class SonoffTHDevice:
-    def __init__(self):
-        self.client = mqtt.Client("greenho1")
-        self.client.connect("localhost")
-
+    def __init__(self,mqtt_client):
+        self.client = mqtt_client
         for topic in gh_mappings.keys():
             self.client.subscribe(topic)
         self.client.subscribe("greenhouse/control2/SENSOR")
@@ -54,7 +52,8 @@ class SonoffTHDevice:
             self.client.publish("/".join(tok))
             
 class CO2Detector:
-    def __init__(self,devicefilename):
+    def __init__(self,devicefilename,mqtt_client):
+        self.client = mqtt_client
         self.key = [0xc4, 0xc6, 0xc0, 0x92, 0x40, 0x23, 0xdc, 0x96]
         self.fp = open(devicefilename, "a+b",  0)
         HIDIOCSFEATURE_9 = 0xC0094806
@@ -102,11 +101,14 @@ class CO2Detector:
                 if 0x50 in values and 0x42 in values:
                     co2ppm = int(values[0x50])
                     tempc = float(values[0x42]/16.0-273.15)
+                    self.client.publish('stat/greenhouse/co2sens',"{\"co2ppm\":%d,\"temp_c\":%2f}" % (co2ppm,tempc))
                     return (co2ppm, tempc)
 
 if __name__ == '__main__':
-    device = SonoffTHDevice()
-    detector = CO2Detector("/dev/hidraw0")
+    mqtt = mqtt.Client("greenho1")
+    mqtt.connect("localhost")
+    device = SonoffTHDevice(mqtt)
+    detector = CO2Detector("/dev/hidraw0",mqtt)
     while True:
         co2,temp_c = detector.fetch()
         device.poll_sensors()
