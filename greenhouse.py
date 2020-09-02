@@ -61,7 +61,7 @@ class SonoffTHDevice:
     def poll_sensors(self):
         for topic in gh_mappings.keys():
             tok = topic.split("/")
-            tok.insert(2,"cmnd")
+            tok[0] = "stat"
             self.client.publish("/".join(tok))
             
 class CO2Detector:
