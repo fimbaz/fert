@@ -4,11 +4,11 @@ import paho.mqtt.client as mqtt
 import sys, fcntl, time
 import json
 import math
-gh_mappings = {'greenhouse/control1/POWER1' : "WaterPump",
-                'greenhouse/control1/POWER2' :"Vent",
-                'greenhouse/control1/POWER3' : "CO2Valve",
-                'greenhouse/control1/POWER4' : "Lights",
-                'greenhouse/control2/POWER1' : "Swamp"}
+gh_mappings = {'stat/greenhouse/control1/POWER1' : "WaterPump",
+                'stat/greenhouse/control1/POWER2' :"Vent",
+                'stat/greenhouse/control1/POWER3' : "CO2Valve",
+                'stat/greenhouse/control1/POWER4' : "Lights",
+                'stat/greenhouse/control2/POWER1' : "Swamp"}
 def calc_svp(temp_c):
     return 610.78 *  math.exp(temp_c / (temp_c + 238.3) * 17.2694)
 
@@ -17,11 +17,13 @@ def calc_vpd(temp_c,humidity):
 def on_message_cb(client,userdata,message):
     the_time = str(int(time.time()))+"000000000"
     if message.topic == "greenhouse/control2/SENSOR":
-        payload = json.loads(message.payload)["AM2301"]
-
-        vpd = float(payload["VPD"])*100 # convert from hPa to Pa
+#        payload = json.loads(message.payload)["AM2301"]
+        payload = json.loads(message.payload)["DS18B20"]
+        print(message.payload)
         print(requests.post("http://localhost:8086/write?db=greenhouse",
                             "temp_c,host=clarissa,region=baker30s,room=gh2 temp_c=%2f %s"  % (payload["Temperature"], the_time)))
+
+        vpd = float(payload["VPD"])*100 # convert from hPa to Pa
         print(requests.post("http://localhost:8086/write?db=greenhouse",
                             "humidity,host=clarissa,region=baker30s,room=gh2 humidity=%2f %s"  % (payload["Humidity"], the_time)))
         print(requests.post("http://localhost:8086/write?db=greenhouse",
@@ -122,11 +124,12 @@ class CO2Detector:
                     return (co2ppm, tempc)
                 
 if __name__ == '__main__':
-    mqtt = mqtt.Client("greenho1")
+    mqtt = mqtt.Client("greenho_man")
     mqtt.connect("localhost")
     device = SonoffTHDevice(mqtt)
     detector = CO2Detector("/dev/hidraw0",mqtt)
     while True:
         detector.fetch()
         device.fetch()
+        time.sleep(1)
 
