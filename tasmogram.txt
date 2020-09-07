@@ -1,22 +1,10 @@
 # grep -vE '^#' | tr "\n" ' ' | tr -s ' ' | tr '`' '\n'
-# Var1 cool-runnings-cycles-left CoolRunnings cycle Counter
 # Var2 vent-state Vent fan state
 # Var3 co2-state Co2 solenoid state
-# Var4 light-state Light state
-# Var5 purge-next-lowco2 PurgeGas relax callback -- causes next < 800ppm co2 state to trigger PurgeGas
-# Var6 purge-in-progress PurgeGas in progress flag -- do not reset the PurgeGas timer.
-Rule1 ON Event#RelaxAndPurgeGas DO
-  backlog Event StopGas;
-    Var5 1;
-    Var6 0;
-ENDON ON Event#PurgeGas DO
-  backlog Event VentOn;
-    RuleTimer6 30;
-ENDON ON Rules#Timer=6 DO
-  backlog Event VentOff;
-    var5 0;
-    var6 0;
-ENDON ON Event#LightsOn DO
+# Var4 not used
+
+# Rules for controller#1
+Rule1 ON Event#LightsOn DO
   backlog Power4 1;
     var4 1;
 ENDON ON Event#LightsOff DO
@@ -27,72 +15,46 @@ backlog Power3 0;
     var3 0;
 ENDON ON Event#VentOn DO
   backlog Power2 1;
-    Var2 1;
     Event StopGas;
+    Var2 1;
 ENDON ON Event#VentOff DO
   backlog Power2 0;
     Var2 0;
 ENDON ON Event#PumpGas DO 
-  backlog Power3 1;
-   RuleTimer3 30;
-   var3 1
+  backlog Var3 1;
+    Power3 1;
+    RuleTimer3 10;
 #Emit CO2 in response to low ppm detected.
 ENDON ON mqtt#Connected DO 
   backlog Subscribe co2ppm, stat/greenhouse/co2sens, co2ppm;
   Subscribe VPD, greenhouse/control2/SENSOR, AM2301.VPD
-ENDON ON Event#VPD<8 DO
-      Event RelaxAndPurgeGas
-ENDON ON Event#co2ppm<=800 DO
-  IF (%VAR5% = 1 AND %VAR6% != 1) backlog Event PurgeGas; var6 1 
-  ELSEIF (%VAR4% = 1 AND %VAR2% = 0 AND %VAR5% != 1) Event PumpGas
+ENDON ON Event#co2ppm<=1200 DO
+  IF (%VAR4% = 1 AND %VAR2% = 0) Event PumpGas
   ENDIF
 ENDON ON Rules#Timer=3 DO 
   Event StopGas
 ENDON
-# Cycle the pump to melt some ice.  Cycle Var1 times (30),
-# w/ pump on 20 and off 30 for each cycle.
-`Rule2 ON Event#CoolRunnings DO
-  backlog Var1 60;
-    Power1 0;
-    Event CR1; 
-ENDON ON Var1#State<1 DO 
-  backlog RuleTimer4 0;
-    RuleTimer5 0;
-ENDON ON Event#CR1 DO
-  backlog Power1 1;
-    RuleTimer4 10;
-#Counts the number of pump/relax steps for the ice bucket
-ENDON ON Rules#Timer=4 DO
-  backlog Power1 0; 
-    RuleTimer5 30;
-    Sub1 1;
-ENDON ON Rules#Timer=5 DO
-  backlog Event CR1;
-#ENDON ON Rules#Timer=7 DO
-#    backlog  Event RelaxAndPurgeGas;
-#      RuleTimer7 4800
-ENDON ON Event#GoodMorning DO
-  backlog Event LightsOn;
-    Event VentOff;
-#Start the purge loop
-#    RuleTimer7 4800
-ENDON ON Event#GoodNight DO
-  backlog Event LightsOff;
-    Event VentOn;
-    RuleTimer7 0
-ENDON ON Clock#Timer=2 DO
-  Event GoodMorning
-ENDON ON Clock#Timer=3 DO
-  Event GoodNight
-ENDON ON System#Boot DO
+`Rule2 ON System#Boot DO
   backlog Var1 0;
     Var2 0;
     Var3 0;
-    Var4 0;
-    Var5 0;
-    Var6 0;
     Power1 0;
     Power2 0;
     Power3 0;
     Power4 0;
-ENDON 
+ENDON ON Clock#Timer=2 DO
+  Event GenerateMorning
+ENDON ON Clock#Timer=3 DO
+  Event GoodNight
+ENDON ON Event#GoodMorning DO
+  backlog Event LightsOn;
+    Event VentOff;
+ENDON ON Event#GoodNight DO
+  backlog Event LightsOff;
+    Event VentOn;
+ENDON ON Event#GenerateMorning DO
+  Publish cmnd/greenhouses/EVENT GoodMorning
+ENDON ON Event#GenerateNight DO
+  Publish cmnd/greenhouses/EVENT GoodNight
+ENDON
+

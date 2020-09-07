@@ -127,7 +127,7 @@ if __name__ == '__main__':
     mqtt = mqtt.Client("greenho_man")
     mqtt.connect("localhost")
     device = SonoffTHDevice(mqtt)
-    detector = CO2Detector("/dev/hidraw0",mqtt)
+    detector = CO2Detector("/dev/co2sens",mqtt)
     while True:
         detector.fetch()
         device.fetch()
