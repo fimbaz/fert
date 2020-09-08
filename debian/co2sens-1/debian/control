@@ -1,0 +1,11 @@
+Source: co2sens
+Priority: optional
+Maintainer: Matthew Baker <fimbaz@gmail.com>
+Build-Depends: debhelper (>= 11), dh-python, dh-systemd,  python-all
+Standards-Version: 4.1.3
+
+Package: co2sens
+Architecture: any
+Section: python
+Depends: python2, ${misc:Depends}, ${python:Depends}
+Description: Report co2 concentration and temperature to mqtt.
