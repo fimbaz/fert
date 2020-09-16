@@ -1,0 +1,7 @@
+[Unit]
+Description=Co2 and temperature monitor
+Wants=dev-co2sens.device
+
+[Service]
+User=root
+ExecStart=/usr/bin/tasmonitor
