@@ -4,4 +4,4 @@ Wants=dev-co2sens.device
 
 [Service]
 User=root
-ExecStart=/usr/bin/co2sens
+ExecStart=/usr/bin/tasmonitor

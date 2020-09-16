@@ -1,1 +1,0 @@
-ACTION=="add", SUBSYSTEM=="hidraw", DEVPATH=="*04D9:A052*", TAG+="systemd", ENV{SYSTEMD_WANTS}="co2sens.service", SYMLINK+="co2sens"
