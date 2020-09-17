@@ -64,10 +64,10 @@ class SonoffTHDevice:
             tok[0] = "stat"
             self.client.publish("/".join(tok))
             
-if __name__ == '__main__':
-    mqtt = mqtt.Client("greenho_man")
-    mqtt.connect("localhost")
-    device = SonoffTHDevice(mqtt)
+def main():
+    client = mqtt.Client("greenho_man")
+    client.connect("localhost")
+    device = SonoffTHDevice(client)
     while True:
         device.fetch()
         time.sleep(1)

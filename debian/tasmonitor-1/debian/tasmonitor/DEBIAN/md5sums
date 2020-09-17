@@ -1,0 +1,12 @@
+3347b64456ae7fafbfc44900632cb146  lib/systemd/system/tasmonitor.service
+f7d7f7bf342789935947d60071155221  usr/bin/tasmonitor
+8282ef1c0784f8f1162db467de4c9a97  usr/lib/python2.7/dist-packages/tasmonitor-0.1.egg-info/PKG-INFO
+68b329da9893e34099c7d8ad5cb9c940  usr/lib/python2.7/dist-packages/tasmonitor-0.1.egg-info/dependency_links.txt
+fa87558e02c88813abe72a74ed0258ff  usr/lib/python2.7/dist-packages/tasmonitor-0.1.egg-info/entry_points.txt
+68b329da9893e34099c7d8ad5cb9c940  usr/lib/python2.7/dist-packages/tasmonitor-0.1.egg-info/not-zip-safe
+d41d8cd98f00b204e9800998ecf8427e  usr/lib/python2.7/dist-packages/tasmonitor-0.1.egg-info/requires.txt
+071f983f7c88ebe4cf13563c0c2a8dc7  usr/lib/python2.7/dist-packages/tasmonitor-0.1.egg-info/top_level.txt
+d41d8cd98f00b204e9800998ecf8427e  usr/lib/python2.7/dist-packages/tasmonitor/__init__.py
+347fbb863304d85b00a20475efb37c03  usr/lib/python2.7/dist-packages/tasmonitor/tasmonitor.py
+50cc79812f2449ff92c9e1fbd41cb5fa  usr/share/doc/tasmonitor/changelog.gz
+c4459cf5c6a54e3bcef97f860c20ce0b  usr/share/doc/tasmonitor/copyright
