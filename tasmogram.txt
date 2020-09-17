@@ -61,9 +61,9 @@ ENDON
 #control2
 `Rule1 ON mqtt#Connected DO 
   Subscribe VPD, tele/greenhouse/control2/SENSOR, AM2301.VPD
-ENDON ON Event#VPD>12.0 DO
+ENDON ON Event#VPD>9.0 DO
   Power4 0
-ENDON ON Event#VPD<12.0 DO
+ENDON ON Event#VPD<9.0 DO
   Power4 1
 ENDON ON Event#GoodNight DO
   backlog Power2 0; Power3 1; Power4 0;
