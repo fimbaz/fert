@@ -7,7 +7,9 @@ import math
 gh_mappings = {'stat/greenhouse/control1/POWER1' : "WaterPump",
                 'stat/greenhouse/control1/POWER2' :"Vent",
                 'stat/greenhouse/control1/POWER3' : "CO2Valve",
-                'stat/greenhouse/control1/POWER4' : "Lights",
+                'stat/greenhouse/control3/POWER3' : "Reds",
+                'stat/greenhouse/control3/POWER2' : "Lights",
+                'stat/greenhouse/control3/POWER4' : "DeHum",
                 'stat/greenhouse/control2/POWER1' : "Swamp"}
 def calc_svp(temp_c):
     return 610.78 *  math.exp(temp_c / (temp_c + 238.3) * 17.2694)
