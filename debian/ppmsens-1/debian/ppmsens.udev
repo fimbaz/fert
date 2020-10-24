@@ -1,1 +1,1 @@
-ACTION=="add", SUBSYSTEM=="tty", DEVPATH=="*1A86:7523*", TAG+="systemd", ENV{SYSTEMD_WANTS}="ppmsens.service", SYMLINK+="ppmsens"
+ACTION=="add", SUBSYSTEM=="tty", ID_VENDOR=="1a86", ID_MODEL=="7523", TAG+="systemd", ENV{SYSTEMD_WANTS}="ppmsens.service", SYMLINK+="ppmsens"

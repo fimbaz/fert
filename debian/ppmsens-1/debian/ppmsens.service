@@ -1,6 +1,6 @@
 [Unit]
 Description=Gather air quality data
-Wants=dev-co2sens.device
+Wants=dev-ppmsens.device
 
 [Service]
 User=root
