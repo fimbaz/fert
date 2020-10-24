@@ -1,6 +1,0 @@
-507a598aded449267a14facb846c3180  lib/systemd/system/ppmsens.service
-0ddcf70a63cc22ae03474d4f1a912061  lib/udev/rules.d/60-ppmsens.rules
-f1a2b211185c41d814c8bb8b9ed6bc27  usr/bin/ppmsens.bash
-448dcef5546a53cc8bf8ebedf4d697d6  usr/share/doc/ppmsens/README.Debian
-eec90b8726f0bcb3cd03372a7b8b23b3  usr/share/doc/ppmsens/changelog.gz
-2cf2e50e80d68b27eb5db2ab193c2de7  usr/share/doc/ppmsens/copyright
