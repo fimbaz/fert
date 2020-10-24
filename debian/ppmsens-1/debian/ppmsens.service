@@ -1,0 +1,7 @@
+[Unit]
+Description=Gather air quality data
+Wants=dev-co2sens.device
+
+[Service]
+User=root
+ExecStart=/usr/bin/ppmsens
