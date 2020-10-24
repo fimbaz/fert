@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 SOCK=${1:-/dev/ttyUSB0}
 
 stty -F $SOCK 115200 raw
