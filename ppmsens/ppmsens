@@ -17,7 +17,7 @@ while true; do
 	      COL=${COL//\./_}
 	      echo $COL
 	      if [[ $COL ]]; then
-		 curl -X POST -d @- "http://localhost:8086/write?db=greenhouse" <<EOF 
+		 curl -s -X POST -d @- "http://localhost:8086/write?db=greenhouse" <<EOF 
 $COL,host=clarissa,region=baker30s,room=upstairs $COL=${REC[1]} $(date '+%s')000000000
 EOF
 	      fi
