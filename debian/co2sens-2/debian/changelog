@@ -1,0 +1,11 @@
+co2sens (2) mb-private; urgency=medium
+
+  * Release to Monty so we don't lose our code
+
+ -- Matthew Baker <fimbaz@gmail.com>  Sun, 15 Nov 2020 19:12:21 -0800
+
+co2sens (1) unstable; urgency=medium
+
+  * Initial Release.
+
+ -- Matthew Baker <fimbaz@gmail.com>  Mon, 07 Sep 2020 14:40:20 -0700
