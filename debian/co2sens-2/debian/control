@@ -1,5 +1,6 @@
 Source: co2sens
 Priority: optional
+Section: python
 Maintainer: Matthew Baker <fimbaz@gmail.com>
 Build-Depends: debhelper (>= 11), dh-python, dh-systemd,  python-all, influxdb, mosquitto
 Standards-Version: 4.1.3
