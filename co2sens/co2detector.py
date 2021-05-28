@@ -10,7 +10,7 @@ class CO2Detector:
         self.key = [0xc4, 0xc6, 0xc0, 0x92, 0x40, 0x23, 0xdc, 0x96]
         self.fp = open(devicefilename, "a+b",  0)
         HIDIOCSFEATURE_9 = 0xC0094806
-        set_report = "\x00" + "".join(chr(e) for e in self.key)
+        set_report = b'\x00' + bytes(self.key)#"".join(chr(e) for e in self.key)
         fcntl.ioctl(self.fp, HIDIOCSFEATURE_9, set_report)
     def decrypt(self, key, data):
         cstate = [0x48,  0x74,  0x65,  0x6D,  0x70,  0x39,  0x39,  0x65]
@@ -43,7 +43,7 @@ class CO2Detector:
     def fetch(self):
         values = {}
         while True:
-            data = list(ord(e) for e in self.fp.read(8))
+            data = list(e for e in self.fp.read(8))
             decrypted = self.decrypt(self.key, data)
             if decrypted[4] != 0x0d or (sum(decrypted[:3]) & 0xff) != decrypted[3]:
                 print(self.hd(data), " => ", self.hd(decrypted),  "Checksum error")
@@ -55,6 +55,7 @@ class CO2Detector:
                     co2ppm = int(values[0x50])
                     tempc = float(values[0x42]/16.0-273.15)
                     the_time = str(int(time.time()))+"000000000"
+                    print(f"{co2ppm} {tempc} {the_time}")
                     self.client.publish('stat/greenhouse/co2sens',"{\"co2ppm\":%d,\"temp_c\":%2f}" % (co2ppm,tempc))
                     print(requests.post("http://localhost:8086/write?db=greenhouse",
                                         "temp_c,host=clarissa,region=baker30s,room=gh1 temp_c=%2f %s"  % (tempc, the_time)))
@@ -63,10 +64,13 @@ class CO2Detector:
 
                     return (co2ppm, tempc)
 
-
 def main():
+    hid_device= sys.argv[1] if len(sys.argv) > 1 else "/dev/co2sens"
     mqttc = mqtt.Client("greenho_co2detector")
     mqttc.connect("localhost")
-    detector = CO2Detector("/dev/co2sens",mqttc)
+    detector = CO2Detector(hid_device,mqttc)
     while True:
         detector.fetch()
+        
+if __name__ == '__main__':
+    main()
