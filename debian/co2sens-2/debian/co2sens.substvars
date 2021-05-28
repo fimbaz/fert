@@ -1,4 +1,0 @@
-python:Versions=2.7
-python:Depends=python2:any, python2:any (<< 2.8), python2:any (>= 2.7~)
-misc:Depends=
-misc:Pre-Depends=

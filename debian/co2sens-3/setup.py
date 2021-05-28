@@ -10,5 +10,5 @@ setup(name='co2sens',
     'console_scripts': ['co2sens=co2sens.co2detector:main'],
 
     },
-      install_requires = ['requests','paho-mqtt'],
+      install_requires = ['paho-mqtt','requests'],
   zip_safe=False)
