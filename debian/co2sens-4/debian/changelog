@@ -1,8 +1,14 @@
-co2sens (3) UNRELEASED; urgency=medium
+co2sens (4) UNRELEASED; urgency=medium
+
+  * use prometheus
+
+ -- Matthew Charles Baker <fimbaz@gibraltar.lan>  Fri, 28 May 2021 14:27:35 -0700
+	co2sens (3+nmu1) UNRELEASED; urgency=medium
 
   * Use python3
+  * 
 
- -- Matthew Charles Baker <fimbaz@gmail.com>  Fri, 28 May 2021 12:03:10 -0700
+ -- Matthew Charles Baker <fimbaz@gibraltar.lan>  Fri, 28 May 2021 14:27:35 -0700
 
 co2sens (2) mb-private; urgency=medium
 
