@@ -6,10 +6,11 @@ import sys, fcntl, time
 import json
 import math
 
-from prometheus_client import start_http_server, Summary
+
 import time
+from prometheus_client import start_http_server, Summary
 from prometheus_client.core import GaugeMetricFamily, REGISTRY, CounterMetricFamily
-from prometheus_client import start_http_server
+
 
 
 
@@ -90,6 +91,7 @@ class CO2Detector:
 def main():
     hid_device= sys.argv[1] if len(sys.argv) > 1 else "/dev/co2sens"
     mqttc = mqtt.Client("greenho_co2detector")
+    mqttc.username_pw_set(username="greenho_co2detector",password="cheese")
     mqttc.connect("localhost")
     detector = CO2Detector(hid_device,mqttc)
     while True:
