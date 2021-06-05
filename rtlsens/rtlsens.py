@@ -5,8 +5,8 @@ import paho.mqtt.client as mqtt
 import sys, fcntl, time
 import json
 import math
-
-
+import subprocess
+import json
 import time
 from prometheus_client import start_http_server, Summary
 from prometheus_client.core import GaugeMetricFamily, REGISTRY, CounterMetricFamily
@@ -14,86 +14,58 @@ from prometheus_client.core import GaugeMetricFamily, REGISTRY, CounterMetricFam
 
 
 
-class CO2PromCollector(object):
-    def __init__(self,co2detector):
-        self.detector = co2detector
+class RTLCollector(object):
+    def __init__(self,rtldetector):
+        self.detector = rtldetector
     def collect(self):
-        g = GaugeMetricFamily("co2ppm", 'Detect parts per million of co2 in the atmosphere.', labels=['greenhouse'])
-        g.add_metric(["greenhouse"], self.detector.co2ppm)
+        g = GaugeMetricFamily("temp_c_rtl1", 'Temperature detected by my lightning detector', labels=['greenhouse'])
+        g.add_metric(["greenhouse"], self.detector.temp_c_rtl1)
         yield g
-        g = GaugeMetricFamily("temp_c", 'Detect parts per million of co2 in the atmosphere.', labels=['greenhouse'])
-        g.add_metric(["greenhouse"], self.detector.temp_c)
+        g = GaugeMetricFamily("relhum_rtl1", 'Humidity detected by my lightning detector.', labels=['greenhouse'])
+        g.add_metric(["greenhouse"], self.detector.relhum_rtl1)
         yield g
         
         
         
-class CO2Detector:
-    def __init__(self,devicefilename,mqtt_client):
+class RTLDetector:
+    def __init__(self,mqtt_client):
         self.client = mqtt_client
-        self.key = [0xc4, 0xc6, 0xc0, 0x92, 0x40, 0x23, 0xdc, 0x96]
-        self.fp = open(devicefilename, "a+b",  0)
-        HIDIOCSFEATURE_9 = 0xC0094806
-        set_report = b'\x00' + bytes(self.key)#"".join(chr(e) for e in self.key)
-        fcntl.ioctl(self.fp, HIDIOCSFEATURE_9, set_report)        
-        self.co2ppm,self.temp_c  =  self.fetch()
+        #cli_args = ['rtl_433', '-F','json','-C','si']
+        cli_args = ["bash","testme.bash"]
+        self.rtl_433 = subprocess.Popen(cli_args, stdout=subprocess.PIPE)
+        for _ in range(1,50):
+            print("fetching initial data..")
+            self.fetch()
         start_http_server(8000)
-        REGISTRY.register(CO2PromCollector(self))
-
-    def decrypt(self, key, data):
-        cstate = [0x48,  0x74,  0x65,  0x6D,  0x70,  0x39,  0x39,  0x65]
-        shuffle = [2, 4, 0, 7, 1, 6, 5, 3]
-        phase1 = [0] * 8
-        for i, o in enumerate(shuffle):
-            phase1[o] = data[i]
-
-        phase2 = [0] * 8
-        for i in range(8):
-            phase2[i] = phase1[i] ^ key[i]
-
-        phase3 = [0] * 8
-        for i in range(8):
-            phase3[i] = ( (phase2[i] >> 3) | (phase2[ (i-1+8)%8 ] << 5) ) & 0xff
-
-        ctmp = [0] * 8
-        for i in range(8):
-            ctmp[i] = ( (cstate[i] >> 4) | (cstate[i]<<4) ) & 0xff
-
-        out = [0] * 8
-        for i in range(8):
-            out[i] = (0x100 + phase3[i] - ctmp[i]) & 0xff
-
-        return out
-
-    def hd(self,d):
-        return " ".join("%02X" % e for e in d)
+        REGISTRY.register(RTLCollector(self))
 
     def fetch(self):
-        values = {}
-        while True:
-            data = list(e for e in self.fp.read(8))
-            decrypted = self.decrypt(self.key, data)
-            if decrypted[4] != 0x0d or (sum(decrypted[:3]) & 0xff) != decrypted[3]:
-                print(self.hd(data), " => ", self.hd(decrypted),  "Checksum error")
-            else:
-                op = decrypted[0]
-                val = decrypted[1] << 8 | decrypted[2]
-                values[op] = val
-                if 0x50 in values and 0x42 in values:
-                    co2ppm = int(values[0x50])
-                    tempc = float(values[0x42]/16.0-273.15)
-                    the_time = str(int(time.time()))+"000000000"
-                    print(f"{co2ppm} {tempc} {the_time}")
-                    self.client.publish('stat/greenhouse/co2sens',"{\"co2ppm\":%d,\"temp_c\":%2f}" % (co2ppm,tempc))
-                    self.co2ppm = co2ppm
-                    self.temp_c = tempc
-                    return (co2ppm, tempc)
+        line = self.rtl_433.stdout.readline()
+        if line == b'':
+            raise EOFError()
+        print(line)
+        self.update_state(line)
+        self.client.publish('stat/greenhouse/rtl433',self.format_mqtt_payload())
 
+    def format_mqtt_payload(self):
+        json.dumps({"temp_c":self.temp_c_rtl1,
+         "relhum":self.relhum_rtl1})
+        
+    def update_state(self,payload):
+        self.last_message = json.loads(payload)
+        if self.last_message["model"] == "Acurite-6045M":
+            self.temp_c_rtl1 = self.last_message["temperature_C"]
+            self.relhum_rtl1 = self.last_message["humidity"]
+        if self.last_message["model"] == "Acurite-5n1" and self.last_message["message_type"] == 56:
+            self.temp_c_rtl1_roof = self.last_message["temperature_C"]
+            self.relhum_rtl1_roof = self.last_message["humidity"]
+            self.windavg_rtl1_roof = self.last_message["wind_avg_km_h"]
+        
 def main():
-    hid_device= sys.argv[1] if len(sys.argv) > 1 else "/dev/co2sens"
-    mqttc = mqtt.Client("greenho_co2detector")
-    mqttc.username_pw_set(username="greenho_co2detector",password="cheese")
-    mqttc.connect("localhost")
-    detector = CO2Detector(hid_device,mqttc)
+    mqttc = mqtt.Client("greenho_rtldetector")
+    mqttc.username_pw_set(username="greenho_rtldetector",password="cheese")
+    mqttc.connect("192.168.1.38")
+    detector = RTLDetector(mqttc)
     while True:
         detector.fetch()
         
