@@ -70,7 +70,7 @@ class RTLDetector:
         if self.last_message["model"] == "Acurite-6045M":
             self.temp_c_rtl1 = self.last_message["temperature_C"]
             self.relhum_rtl1 = self.last_message["humidity"]
-            self.vpd_rtl1 = calc_vpd(self.temp_c_rtl1,self.relhum.rtl1)
+            self.vpd_rtl1 = calc_vpd(self.temp_c_rtl1,self.relhum_rtl1)
         if self.last_message["model"] == "Acurite-5n1" and self.last_message["message_type"] == 56:
             self.temp_c_rtl1_roof = self.last_message["temperature_C"]
             self.relhum_rtl1_roof = self.last_message["humidity"]
