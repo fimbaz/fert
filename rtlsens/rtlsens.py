@@ -30,22 +30,27 @@ class RTLCollector(object):
 class RTLDetector:
     def __init__(self,mqtt_client):
         self.client = mqtt_client
-        #cli_args = ['rtl_433', '-F','json','-C','si']
-        cli_args = ["bash","testme.bash"]
+        cli_args = ['rtl_433', '-F','json','-C','si']
+        #cli_args = ["bash","testme.bash"]
         self.rtl_433 = subprocess.Popen(cli_args, stdout=subprocess.PIPE)
-        for _ in range(1,50):
-            print("fetching initial data..")
-            self.fetch()
+        self.prefetch()
         start_http_server(8000)
         REGISTRY.register(RTLCollector(self))
 
+    def fetch_loop(self):
+        while True:
+            self.fetch()
+            self.client.publish('stat/greenhouse/rtl433',self.format_mqtt_payload())
+    def prefetch(self):
+        for _ in range(1,50):
+            print("fetching initial data..")
+            self.fetch()
     def fetch(self):
         line = self.rtl_433.stdout.readline()
         if line == b'':
             raise EOFError()
         print(line)
         self.update_state(line)
-        self.client.publish('stat/greenhouse/rtl433',self.format_mqtt_payload())
 
     def format_mqtt_payload(self):
         json.dumps({"temp_c":self.temp_c_rtl1,
@@ -67,7 +72,7 @@ def main():
     mqttc.connect("192.168.1.38")
     detector = RTLDetector(mqttc)
     while True:
-        detector.fetch()
+        detector.fetch_loop()
         
 if __name__ == '__main__':
     main()
