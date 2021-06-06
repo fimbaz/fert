@@ -40,6 +40,10 @@ class RTLCollector(object):
         g.add_metric(["greenhouse"],self.detector.windavg_rtl1_roof)
 
         yield g
+
+        g = GaugeMetricFamily("vpd_rtl1_roof", 'Vapor pressure defecit in hPa on the roof.', labels=['greenhouse'])
+        g.add_metric(["greenhouse"], self.detector.vpd_rtl1_roof)
+        yield g
         
         
         
@@ -89,6 +93,7 @@ class RTLDetector:
             self.temp_c_rtl1_roof = self.last_message["temperature_C"]
             self.relhum_rtl1_roof = self.last_message["humidity"]
             self.windavg_rtl1_roof = self.last_message["wind_avg_km_h"]
+            self.vpd_rtl1_roof = calc_vpd(self.temp_c_rtl1_roof,self.relhum_rtl1_roof)            
 def main():
     mqttc = mqtt.Client("greenho_rtldetector")
     mqttc.username_pw_set(username="greenho_rtldetector",password="cheese")
