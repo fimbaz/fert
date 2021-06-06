@@ -26,8 +26,20 @@ class RTLCollector(object):
         yield g
         g = GaugeMetricFamily("vpd_rtl1", 'Vapor pressure defecit in hPa.', labels=['greenhouse'])
         g.add_metric(["greenhouse"], self.detector.vpd_rtl1)
-        
         yield g
+
+        g.add_metric(["greenhouse"],self.detector.temp_c_rtl1_roof)
+        g = GaugeMetricFamily("temp_c_rtl1_roof", 'Temperature on the roof', labels=['greenhouse'])
+        yield g
+
+        g.add_metric(["greenhouse"],self.detector.relhum_rtl1_roof)
+        g = GaugeMetricFamily("relhum_rtl1_roof", 'Relative humidity on the roof', labels=['greenhouse'])
+        yield g
+
+        g.add_metric(["greenhouse"],self.windavg_rtl1_roof)
+        g = GaugeMetricFamily("windavg_rtl1_roof", 'Wind speed on the roof', labels=['greenhouse'])
+        yield g
+        
         
         
 def calc_svp(temp_c):
