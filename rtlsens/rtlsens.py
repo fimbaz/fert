@@ -61,7 +61,7 @@ class RTLDetector:
         self.update_state(line)
 
     def format_mqtt_payload(self):
-        json.dumps({"temp_c":self.temp_c_rtl1,
+        return json.dumps({"temp_c":self.temp_c_rtl1,
                     "relhum":self.relhum_rtl1,
                     "VPD":self.vpd_rtl1})
         
@@ -80,8 +80,7 @@ def main():
     mqttc.username_pw_set(username="greenho_rtldetector",password="cheese")
     mqttc.connect("localhost")
     detector = RTLDetector(mqttc)
-    while True:
-        detector.fetch_loop()
+    detector.fetch_loop()
         
 if __name__ == '__main__':
     main()
