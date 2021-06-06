@@ -22,8 +22,8 @@ class RTLCollector(object):
         g.add_metric(["greenhouse"], self.detector.temp_c_rtl1)
         yield g
         g = GaugeMetricFamily("relhum_rtl1", 'Humidity detected by my lightning detector.', labels=['greenhouse'])
+        g.add_metric(["greenhouse"], self.detector.relhum_rtl1)        
         yield g
-        g.add_metric(["greenhouse"], self.detector.relhum_rtl1)
         g = GaugeMetricFamily("vpd_rtl1", 'Vapor pressure defecit in hPa.', labels=['greenhouse'])
         g.add_metric(["greenhouse"], self.detector.vpd_rtl1)
         
