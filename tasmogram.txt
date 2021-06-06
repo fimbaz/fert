@@ -29,7 +29,7 @@ ENDON ON Event#PumpGas DO
 #Emit CO2 in response to low ppm detected.
 ENDON ON mqtt#Connected DO 
   backlog Subscribe co2ppm, stat/greenhouse/co2sens, co2ppm;
-  Subscribe VPD, greenhouse/control2/SENSOR, AM2301.VPD
+  Subscribe VPD, stat/greenhouse/rtl433, VPD
 ENDON ON Event#co2ppm<=1200 DO
   IF (%VAR4% = 1 AND %VAR2% = 0 AND %VAR5% = 0) Event PumpGas
   ENDIF
@@ -39,8 +39,11 @@ ENDON ON Rules#Timer=3 DO
   RuleTimer4 120;
 ENDON ON Rules#Timer=4 DO
   Var5 0
+ENDON ON Event#VPD>9.0 DO
+  Power4 0
+ENDON ON Event#VPD<9.0 DO
+  Power4 1
 ENDON
-
 `Rule2 ON System#Boot DO
   backlog Var1 0;
     Var2 0;
@@ -65,11 +68,10 @@ ENDON ON Event#GenerateMorning DO
   Publish cmnd/greenhouses/EVENT GoodMorning
 ENDON ON Event#GenerateNight DO
   Publish cmnd/greenhouses/EVENT GoodNight
-ENDON
 
 #control2
 `Rule1 ON mqtt#Connected DO 
-  Subscribe VPD, tele/greenhouse/control2/SENSOR, AM2301.VPD
+  Subscribe VPD, stat/greenhouse/rtl433, VPD
 ENDON ON Event#VPD>9.0 DO
   Power4 0
 ENDON ON Event#VPD<9.0 DO

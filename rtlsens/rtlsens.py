@@ -22,6 +22,7 @@ class RTLCollector(object):
         g.add_metric(["greenhouse"], self.detector.temp_c_rtl1)
         yield g
         g = GaugeMetricFamily("relhum_rtl1", 'Humidity detected by my lightning detector.', labels=['greenhouse'])
+        yield g
         g.add_metric(["greenhouse"], self.detector.relhum_rtl1)
         g = GaugeMetricFamily("vpd_rtl1", 'Vapor pressure defecit in hPa.', labels=['greenhouse'])
         g.add_metric(["greenhouse"], self.detector.vpd_rtl1)
@@ -63,7 +64,7 @@ class RTLDetector:
     def format_mqtt_payload(self):
         return json.dumps({"temp_c":self.temp_c_rtl1,
                     "relhum":self.relhum_rtl1,
-                           "VPD":int(self.vpd_rtl1/10)})
+                           "VPD":(self.vpd_rtl1/100)})
         
     def update_state(self,payload):
         self.last_message = json.loads(payload)
