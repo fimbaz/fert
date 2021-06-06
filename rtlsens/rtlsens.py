@@ -36,7 +36,7 @@ class RTLCollector(object):
         g = GaugeMetricFamily("relhum_rtl1_roof", 'Relative humidity on the roof', labels=['greenhouse'])
         yield g
 
-        g.add_metric(["greenhouse"],self.windavg_rtl1_roof)
+        g.add_metric(["greenhouse"],self.detector.windavg_rtl1_roof)
         g = GaugeMetricFamily("windavg_rtl1_roof", 'Wind speed on the roof', labels=['greenhouse'])
         yield g
         
