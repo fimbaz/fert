@@ -63,7 +63,7 @@ class RTLDetector:
     def format_mqtt_payload(self):
         return json.dumps({"temp_c":self.temp_c_rtl1,
                     "relhum":self.relhum_rtl1,
-                    "VPD":self.vpd_rtl1})
+                           "VPD":int(self.vpd_rtl1/10)})
         
     def update_state(self,payload):
         self.last_message = json.loads(payload)
