@@ -39,9 +39,9 @@ ENDON ON Rules#Timer=3 DO
   RuleTimer4 120;
 ENDON ON Rules#Timer=4 DO
   Var5 0
-ENDON ON Event#VPD>9.0 DO
+ENDON ON Event#VPD>12.0 DO
   Power4 0
-ENDON ON Event#VPD<9.0 DO
+ENDON ON Event#VPD<12.0 DO
   Power4 1
 ENDON
 `Rule2 ON System#Boot DO
@@ -50,6 +50,7 @@ ENDON
     Var3 0;
     Var5 0;
     Var6 20;
+    Var7 1.2;
     Power1 0;
     Power2 0;
     Power3 0;
