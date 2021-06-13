@@ -1,25 +1,12 @@
 # grep -vE '^#' | tr "\n" ' ' | tr -s ' ' | tr '`' '\n'
-# Var2 vent-state Vent fan state
-# Var3 co2-state Co2 solenoid state
-# Var4 not used
-
 # Rules for controller#1
 Rule1 ON Event#LightsOn DO
-  backlog Power4 1;
-    var4 1;
+    Var4 1
 ENDON ON Event#LightsOff DO
-  backlog Power4 0;
-    var4 0;
+    Var4 0
 ENDON ON Event#StopGas DO
 backlog Power3 0;
-    var3 0;
-ENDON ON Event#VentOn DO
-  backlog Power2 1;
-    Event StopGas;
-    Var2 1;
-ENDON ON Event#VentOff DO
-  backlog Power2 0;
-    Var2 0;
+    Var3 0;
 ENDON ON Event#PumpGas DO 
   backlog Var3 1;
     Power3 1;
@@ -34,11 +21,13 @@ ENDON ON Event#co2ppm<=1200 DO
   IF (%VAR4% = 1 AND %VAR2% = 0 AND %VAR5% = 0) Event PumpGas
   ENDIF
 ENDON ON Rules#Timer=3 DO 
-  Event StopGas;
+  backlog Event StopGas;
 # Give co2 a chance to dissapate
-  RuleTimer4 120;
+  RuleTimer4 120
 ENDON ON Rules#Timer=4 DO
   Var5 0
+ENDON ON Event#co2ppm>=1400 DO
+  Event StopGas
 ENDON ON Event#VPD>12.0 DO
   Power4 0
 ENDON ON Event#VPD<12.0 DO
@@ -48,6 +37,7 @@ ENDON
   backlog Var1 0;
     Var2 0;
     Var3 0;
+    Var4 0;
     Var5 0;
     Var6 20;
     Var7 1.2;
