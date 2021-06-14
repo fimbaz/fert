@@ -4,14 +4,10 @@ import paho.mqtt.client as mqtt
 import sys, fcntl, time
 import json
 import math
-gh_mappings = {'stat/greenhouse/control1/POWER1' : "WaterPump",
-                'stat/greenhouse/control1/POWER2' :"Vent",
-                'stat/greenhouse/control1/POWER3' : "CO2Valve",
-                'stat/greenhouse/control3/POWER3' : "Reds",
-                'stat/greenhouse/control3/POWER2' : "Lights",
-                'stat/greenhouse/control3/POWER4' : "DeHum",
-                'stat/greenhouse/control2/POWER1' : "Swamp"}
-
+gh_mappings = {'stat/greenhouse/control3/POWER3' : "Reds",
+                'stat/greenhouse/control3/POWER2' : "CO2",
+                'stat/greenhouse/control3/POWER4' : "DeHum"}
+               
 from prometheus_client import start_http_server, Summary
 from prometheus_client.core import GaugeMetricFamily, REGISTRY, CounterMetricFamily
 
@@ -22,6 +18,7 @@ class TasmotaPromCollector(object):
     def __init__(self,co2detector):
         self.detector = co2detector
     def collect(self):
+        
         g = GaugeMetricFamily("co2ppm", 'Detect parts per million of co2 in the atmosphere.', labels=['greenhouse'])
         g.add_metric(["greenhouse"], self.detector.co2ppm)
         yield g
