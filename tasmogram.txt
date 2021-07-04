@@ -15,7 +15,9 @@ backlog Var3 1;
 #Emit CO2 in response to low ppm detected.
 ENDON ON mqtt#Connected DO 
   backlog Subscribe co2ppm, stat/greenhouse/co2sens, co2ppm;
-  Subscribe VPD, stat/greenhouse/rtl433, VPD
+  Subscribe VPD, stat/greenhouse/rtl433, VPD;
+  Subscribe LightsOn, cmnd/greenhouse/EVENT/LightsOn;
+  Subscribe LightsOff, cmnd/greenhouse/EVENT/LightsOff;  
 ENDON ON Event#co2ppm<=1200 DO
   IF (%VAR4% = 1 AND %VAR2% = 0 AND %VAR5% = 0) Event PumpGas
   ENDIF
@@ -27,14 +29,10 @@ ENDON ON Rules#Timer=4 DO
   Var5 0
 ENDON ON Event#co2ppm>=1400 DO
   Event StopGas
-ENDON ON Event#VPD>12.0 DO
+ENDON ON Event#VPD>15.0 DO
   Power4 0
-ENDON ON Event#VPD<12.0 DO
+ENDON ON Event#VPD<15.0 DO
   Power4 1
-ENDON ON Clock#Timer=2
-  Event LightsOff
-ENDON ON Clock#Timer=3
-  Event LightsOn
 ENDON
 `Rule2 ON System#Boot DO
   backlog Var1 0;
@@ -56,8 +54,8 @@ ENDON ON Event#VPD>9.0 DO
   Power4 0
 ENDON ON Event#VPD<9.0 DO
   Power4 1
-ENDON ON Rules#Timer=2 DO
+ENDON ON Clock#Timer=2 DO
       Event LightsOn
-ENDON ON Rules#Timer=3 DO
+ENDON ON Clock#Timer=3 DO
       Event LightsOff
-ENDON
+ENDON 
