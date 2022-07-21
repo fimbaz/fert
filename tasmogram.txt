@@ -17,7 +17,7 @@ ENDON ON mqtt#Connected DO
   backlog Subscribe co2ppm, stat/greenhouse/co2sens, co2ppm;
   Subscribe VPD, stat/greenhouse/rtl433, VPD;
   Subscribe LightState, cmnd/greenhouse/EVENT/LightState;
-ENDON ON Event#co2ppm<=1200 DO
+ENDON ON Event#co2ppm<=1700 DO
   IF (%VAR4% = 1 AND %VAR2% = 0 AND %VAR5% = 0) Event PumpGas
   ENDIF
 ENDON ON Rules#Timer=3 DO 
@@ -26,11 +26,11 @@ ENDON ON Rules#Timer=3 DO
   RuleTimer4 120
 ENDON ON Rules#Timer=4 DO
   Var5 0
-ENDON ON Event#co2ppm>=1400 DO
+ENDON ON Event#co2ppm>=1800 DO
   Event StopGas
-ENDON ON Event#VPD>15.0 DO
+ENDON ON Event#VPD>15.5 DO
   Power4 0
-ENDON ON Event#VPD<15.0 DO
+ENDON ON Event#VPD<15.5 DO
   Power4 1
 ENDON
 `Rule2 ON System#Boot DO
