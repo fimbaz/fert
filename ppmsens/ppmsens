@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 SOCK=${1:-/dev/ttyUSB0}
 
-stty -F $SOCK 115200 raw
+stty -F $SOCK 115200 raw echo
 function poll_sensor() {
     echo -ne $'{"fun":"05","flag":"1"}\r'  > $SOCK
 }
@@ -13,11 +13,11 @@ while true; do
 	  echo "$FOO}"
       done  < $SOCK | jq 'select(.res == "4") | del(.d,.m,.y,.h,.min,.sec)' |  tr -d '":{},' | tr -s ' ' |  cut -d ' ' -f2,3 | tr -s '\n' | \
 	  while read -a REC; do
-	      COL=${REC[0]}
+ 	      COL=${REC[0]}
 	      COL=${COL//\./_}
 	      echo $COL
 	      if [[ $COL ]]; then
-		 curl -s -X POST -d @- "http://localhost:8086/write?db=greenhouse" <<EOF 
+		 curl -s -X POST -d @- "http://localhost:8086/write" <<EOF 
 $COL,host=clarissa,region=baker30s,room=upstairs $COL=${REC[1]} $(date '+%s')000000000
 EOF
 	      fi

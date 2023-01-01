@@ -31,7 +31,7 @@ class CO2Detector:
     def __init__(self,devicefilename,mqtt_client):
         self.client = mqtt_client
         self.key = [0xc4, 0xc6, 0xc0, 0x92, 0x40, 0x23, 0xdc, 0x96]
-        self.fp = open(devicefilename, "a+b",  0)
+        self.fp = open(devicefilename, "r+b",  0)
         HIDIOCSFEATURE_9 = 0xC0094806
         set_report = b'\x00' + bytes(self.key)#"".join(chr(e) for e in self.key)
         fcntl.ioctl(self.fp, HIDIOCSFEATURE_9, set_report)        
