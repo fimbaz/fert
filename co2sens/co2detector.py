@@ -36,7 +36,7 @@ class CO2Detector:
         set_report = b'\x00' + bytes(self.key)#"".join(chr(e) for e in self.key)
         fcntl.ioctl(self.fp, HIDIOCSFEATURE_9, set_report)        
         self.co2ppm,self.temp_c  =  self.fetch()
-        start_http_server(8000)
+        start_http_server(8001)
         REGISTRY.register(CO2PromCollector(self))
 
     def decrypt(self, key, data):
@@ -74,6 +74,7 @@ class CO2Detector:
             decrypted = self.decrypt(self.key, data)
             if decrypted[4] != 0x0d or (sum(decrypted[:3]) & 0xff) != decrypted[3]:
                 print(self.hd(data), " => ", self.hd(decrypted),  "Checksum error")
+                raise Exception
             else:
                 op = decrypted[0]
                 val = decrypted[1] << 8 | decrypted[2]
